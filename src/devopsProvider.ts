@@ -22,8 +22,12 @@ export class DevopsProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
 		}
 
 		if (!element) {
+			const untrackedFolder = new vscode.TreeItem("未跟踪分支", vscode.TreeItemCollapsibleState.Collapsed);
+			untrackedFolder.iconPath = new vscode.ThemeIcon("symbol-interface");
 			return git.getProjects().then((projects) => {
-				return ProjectItem.sort(projects).map((p) => new ProjectItem(p, vscode.TreeItemCollapsibleState.Collapsed));
+				return ProjectItem.sort(projects)
+					.map<vscode.TreeItem>((p) => new ProjectItem(p, vscode.TreeItemCollapsibleState.Collapsed))
+					.concat([untrackedFolder]);
 			});
 		}
 
@@ -44,6 +48,12 @@ export class DevopsProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
 		if (element instanceof BranchItem) {
 			return git.getDev(element.label).then((devs) => {
 				return BranchItem.sort(devs).map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.None));
+			});
+		}
+
+		if (element instanceof vscode.TreeItem) {
+			return git.getUntrackedBranch().then(() => {
+				return [];
 			});
 		}
 

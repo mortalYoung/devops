@@ -21,12 +21,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand("dtstack-devops.refresh", () => {
+			const dispose = vscode.window.setStatusBarMessage("$(sync~spin)Deveop 仓库同步中，请稍等...");
 			git.sync()
 				.then(() => {
 					provider.refresh();
 				})
 				.catch((error: Error) => {
 					vscode.window.showErrorMessage(error.message);
+				})
+				.finally(() => {
+					dispose.dispose();
 				});
 		}),
 	);

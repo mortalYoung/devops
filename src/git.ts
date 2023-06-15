@@ -112,6 +112,11 @@ export class GitProcess {
 		return Array.from(res);
 	};
 
+	public getUntrackedBranch = async () => {
+		// [TODO)
+		return [];
+	};
+
 	public createBranch = async (basis: string, next: string) => {
 		try {
 			await this.git!.checkoutBranch(next, `${GitProcess.remotePrefix}${basis}`);
