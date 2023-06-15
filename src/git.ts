@@ -26,20 +26,20 @@ export class GitProcess {
 	private getAllBranches = async () => await this.git!.branch();
 
 	private syncing = false;
-	public sync = () => {
+	public sync = async () => {
 		if (this.syncing) {
-			return Promise.resolve();
+			return Promise.reject(new Error("Still syncing"));
 		}
-		return new Promise<void>((resolve, reject) => {
+		try {
 			this.syncing = true;
-			this.git?.fetch(["--all"], (err) => {
-				this.syncing = false;
-				if (err) {
-					return reject(err);
-				}
-				return resolve();
-			});
-		});
+			await this.git?.raw(["remote", "prune", "origin"]);
+			await this.git?.fetch(["--all"]);
+			this.syncing = false;
+			return Promise.resolve();
+		} catch (error) {
+			this.syncing = false;
+			return Promise.reject(error);
+		}
 	};
 
 	public init = (rootPath: string) => {
@@ -63,9 +63,9 @@ export class GitProcess {
 
 	public getIterators = async (project: string) => {
 		const { all } = await this.getAllBranches();
+		const regex = new RegExp(`${GitProcess.remotePrefix}${project}/release_`);
 		const res = all.reduce((acc, cur) => {
-			const obj = GitProcess.parse(cur);
-			if (obj.project === project && obj.action === "release") {
+			if (regex.test(cur)) {
 				acc.add(cur.replace(GitProcess.remotePrefix, ""));
 			}
 			return acc;
@@ -76,12 +76,23 @@ export class GitProcess {
 	public getTests = async (branch: string) => {
 		const { all } = await this.getAllBranches();
 		const { project, version, uuid } = GitProcess.parse(branch);
+		const regex = new RegExp(`${GitProcess.remotePrefix}${project}/test_${version}` + (uuid ? `_${uuid}` : ""));
 		const res = all.reduce((acc, cur) => {
-			const obj = GitProcess.parse(cur);
-			if (obj.project === project && obj.version === version && obj.action === "test") {
-				if (!uuid || obj.uuid === uuid) {
-					acc.add(cur.replace(GitProcess.remotePrefix, ""));
-				}
+			if (regex.test(cur)) {
+				acc.add(cur.replace(GitProcess.remotePrefix, ""));
+			}
+			return acc;
+		}, new Set<string>());
+		return Array.from(res);
+	};
+
+	public getHotfixs = async (branch: string) => {
+		const { all } = await this.getAllBranches();
+		const { project, version, uuid } = GitProcess.parse(branch);
+		const regex = new RegExp(`${GitProcess.remotePrefix}${project}/hotfix_${version}` + (uuid ? `_${uuid}` : ""));
+		const res = all.reduce((acc, cur) => {
+			if (regex.test(cur)) {
+				acc.add(cur.replace(GitProcess.remotePrefix, ""));
 			}
 			return acc;
 		}, new Set<string>());
@@ -90,13 +101,11 @@ export class GitProcess {
 
 	public getDev = async (branch: string) => {
 		const { all } = await this.getAllBranches();
-		const { project, version, uuid } = GitProcess.parse(branch);
+		const current = GitProcess.parse(branch);
+		const branchPrefix = `${GitProcess.remotePrefix}${current.project}/feat_${current.version}_` + (current.uuid ? `${current.uuid}_` : "");
 		const res = all.reduce((acc, cur) => {
-			const obj = GitProcess.parse(cur);
-			if (obj.project === project && obj.version === version && obj.action === "feat") {
-				if (!uuid || obj.uuid.startsWith(uuid)) {
-					acc.add(cur.replace(GitProcess.remotePrefix, ""));
-				}
+			if (cur.startsWith(branchPrefix)) {
+				acc.add(cur.replace(GitProcess.remotePrefix, ""));
 			}
 			return acc;
 		}, new Set<string>());
@@ -104,14 +113,13 @@ export class GitProcess {
 	};
 
 	public createBranch = async (basis: string, next: string) => {
-		return new Promise<void>((resolve, reject) => {
-			this.git!.checkoutBranch(next, `${GitProcess.remotePrefix}${basis}`, (err) => {
-				if (err) {
-					return reject(err);
-				}
-				resolve();
-			});
-		});
+		try {
+			await this.git!.checkoutBranch(next, `${GitProcess.remotePrefix}${basis}`);
+			await this.git?.push("origin", next, ["-u"]);
+			return Promise.resolve();
+		} catch (error) {
+			return Promise.reject(error);
+		}
 	};
 }
 

@@ -16,8 +16,20 @@ export function activate(context: vscode.ExtensionContext) {
 
 	git.init(rootPath);
 
-	const devopsProvider = new DevopsProvider(rootPath);
-	vscode.window.registerTreeDataProvider("dtstack.devops", devopsProvider);
+	const provider = new DevopsProvider(rootPath);
+	context.subscriptions.push(vscode.window.registerTreeDataProvider("dtstack.devops", provider));
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand("dtstack-devops.refresh", () => {
+			git.sync()
+				.then(() => {
+					provider.refresh();
+				})
+				.catch((error: Error) => {
+					vscode.window.showErrorMessage(error.message);
+				});
+		}),
+	);
 
 	// Register all commands
 	context.subscriptions.push(...Object.values(commands).map((dispose) => dispose));

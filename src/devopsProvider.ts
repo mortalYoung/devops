@@ -5,7 +5,13 @@ import { ProjectItem } from "./treeItem/project";
 import { IteratorItem } from "./treeItem/iterator";
 
 export class DevopsProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+	private _onDidChangeTreeData: vscode.EventEmitter<any> = new vscode.EventEmitter<any>();
+	readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
+
 	constructor(private workspaceRoot: string) {}
+	refresh() {
+		this._onDidChangeTreeData.fire(undefined);
+	}
 	getTreeItem(element: vscode.TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
 		return element;
 	}
@@ -28,8 +34,10 @@ export class DevopsProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
 		}
 
 		if (element instanceof IteratorItem) {
-			return git.getTests(element.branch).then((tests) => {
-				return BranchItem.sort(tests).map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.Collapsed));
+			return Promise.all([git.getTests(element.branch), git.getHotfixs(element.branch)]).then(([tests, hotfixs]) => {
+				return BranchItem.sort(tests)
+					.map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.Collapsed))
+					.concat(BranchItem.sort(hotfixs).map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.None)));
 			});
 		}
 

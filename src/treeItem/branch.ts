@@ -29,6 +29,9 @@ export class BranchItem extends vscode.TreeItem {
 			if (obj.action === "feat") {
 				return "dev";
 			}
+			if (obj.action === "hotfix") {
+				return "hotfix";
+			}
 		})();
 
 		this.description = (() => {
@@ -52,7 +55,11 @@ export class BranchItem extends vscode.TreeItem {
 			}
 
 			if (obj.action === "feat") {
-				return new vscode.ThemeIcon("symbol-method", "red");
+				return new vscode.ThemeIcon("symbol-method");
+			}
+
+			if (obj.action === "hotfix") {
+				return new vscode.ThemeIcon("symbol-property");
 			}
 		})();
 	}
