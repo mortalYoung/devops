@@ -213,24 +213,25 @@ export const onCreateMR = () =>
 		const isFix = obj.action === "fix";
 		const isDevBus = obj.uuid === "dev";
 		const isMergeToTest = isFix || isDevBus;
-		const url = vscode.workspace.getConfiguration().get<{ gitlabUrl: string }>("dtstack_devops")?.gitlabUrl || "";
-		vscode.window
-			.showInputBox({
-				title: "Copy the url and open it in browser",
-				value: `${url}/new?merge_request%5Bsource_branch%5D=${encodeURIComponent(
-					branchItem.label,
-				)}&merge_request%5Btarget_branch%5D=${encodeURIComponent(
-					isMergeToTest ? `${obj.project}/test_${obj.version}` : `${obj.project}/feat_${obj.version}_dev`,
-				)}`,
-				validateInput(value) {
-					if (!value) {
-						return "非空";
+		git.getRemote().then((url) => {
+			vscode.window
+				.showInputBox({
+					title: "Copy the url and open it in browser",
+					value: `${url}/new?merge_request%5Bsource_branch%5D=${encodeURIComponent(
+						branchItem.label,
+					)}&merge_request%5Btarget_branch%5D=${encodeURIComponent(
+						isMergeToTest ? `${obj.project}/test_${obj.version}` : `${obj.project}/feat_${obj.version}_dev`,
+					)}`,
+					validateInput(value) {
+						if (!value) {
+							return "非空";
+						}
+					},
+				})
+				.then((val) => {
+					if (val) {
+						vscode.env.openExternal(vscode.Uri.parse(val!));
 					}
-				},
-			})
-			.then((val) => {
-				if (val) {
-					vscode.env.openExternal(vscode.Uri.parse(val!));
-				}
-			});
+				});
+		});
 	});

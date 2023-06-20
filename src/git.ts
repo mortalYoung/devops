@@ -25,6 +25,26 @@ export class GitProcess {
 
 	private getAllBranches = async () => await this.git!.branch();
 
+	/**
+	 * ONLY get ORIGIN remote
+	 */
+	public getRemote = async () => {
+		const remote = (await this.git!.remote(["-v"]))
+			?.split("\n")
+			.filter(Boolean)
+			.find((i) => i.startsWith("origin") && i.endsWith("(push)"))
+			?.replace(/(origin\t)|(\(push\))/g, "")
+			.trim();
+		const isSSh = remote?.startsWith("ssh://");
+		if (isSSh) {
+			const parseUrl = await import("parse-path");
+			const url = parseUrl(remote!);
+			return `http://${url.resource}${url.pathname.replace(".git", "")}/merge_requests`;
+		} else {
+			return remote?.replace(".git", "") + "/merge_requests";
+		}
+	};
+
 	private syncing = false;
 	public sync = async () => {
 		if (this.syncing) {

@@ -110,15 +110,6 @@
           "when": "true"
         }
       ]
-    },
-    "configuration": {
-      "title": "dtstack_devops",
-      "properties": {
-        "dtstack_devops.gitlabUrl": {
-          "type": "string",
-          "default": ""
-        }
-      }
     }
   },
   "scripts": {
@@ -137,6 +128,7 @@
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/parse-path": "^7.0.0",
     "@types/vscode": "^1.75.0",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
@@ -151,6 +143,7 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
+    "parse-path": "^7.0.0",
     "simple-git": "^3.19.0"
   }
 }
