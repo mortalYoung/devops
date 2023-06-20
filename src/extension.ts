@@ -19,24 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
 	const provider = new DevopsProvider(rootPath);
 	context.subscriptions.push(vscode.window.registerTreeDataProvider("dtstack.devops", provider));
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand("dtstack-devops.refresh", () => {
-			const dispose = vscode.window.setStatusBarMessage("$(sync~spin)Deveop 仓库同步中，请稍等...");
-			git.sync()
-				.then(() => {
-					provider.refresh();
-				})
-				.catch((error: Error) => {
-					vscode.window.showErrorMessage(error.message);
-				})
-				.finally(() => {
-					dispose.dispose();
-				});
-		}),
-	);
-
 	// Register all commands
-	context.subscriptions.push(...Object.values(commands).map((dispose) => dispose));
+	context.subscriptions.push(...Object.values(commands).map((dispose) => dispose(provider)));
 }
 
 // This method is called when your extension is deactivated

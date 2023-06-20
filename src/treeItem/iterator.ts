@@ -7,7 +7,7 @@ export class IteratorItem extends vscode.TreeItem {
 	};
 	constructor(public readonly branch: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
 		const { version, uuid } = GitProcess.parse(branch);
-		const label = `迭代 ${version}` + (uuid ? `[${uuid}]` : "");
+		const label = `Release ${version}` + (uuid ? `[${uuid}]` : "");
 		super(label, collapsibleState);
 		this.label = label;
 		this.tooltip = this.label;

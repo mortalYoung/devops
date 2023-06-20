@@ -46,8 +46,10 @@ export class DevopsProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
 		}
 
 		if (element instanceof BranchItem) {
-			return git.getDev(element.label).then((devs) => {
-				return BranchItem.sort(devs).map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.None));
+			return Promise.all([git.getDev(element.label), git.getFix(element.label)]).then(([devs, fixes]) => {
+				return BranchItem.sort(devs)
+					.map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.None))
+					.concat(fixes.map((i) => new BranchItem(i, vscode.TreeItemCollapsibleState.None)));
 			});
 		}
 

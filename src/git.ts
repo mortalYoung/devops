@@ -112,6 +112,19 @@ export class GitProcess {
 		return Array.from(res);
 	};
 
+	public getFix = async (branch: string) => {
+		const { all } = await this.getAllBranches();
+		const current = GitProcess.parse(branch);
+		const branchPrefix = `${GitProcess.remotePrefix}${current.project}/fix_${current.version}_` + (current.uuid ? `${current.uuid}_` : "");
+		const res = all.reduce((acc, cur) => {
+			if (cur.startsWith(branchPrefix)) {
+				acc.add(cur.replace(GitProcess.remotePrefix, ""));
+			}
+			return acc;
+		}, new Set<string>());
+		return Array.from(res);
+	};
+
 	public getUntrackedBranch = async () => {
 		// [TODO)
 		return [];

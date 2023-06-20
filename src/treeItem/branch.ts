@@ -32,6 +32,9 @@ export class BranchItem extends vscode.TreeItem {
 			if (obj.action === "hotfix") {
 				return "hotfix";
 			}
+			if (obj.action === "fix") {
+				return "fix";
+			}
 		})();
 
 		this.description = (() => {
@@ -60,6 +63,10 @@ export class BranchItem extends vscode.TreeItem {
 
 			if (obj.action === "hotfix") {
 				return new vscode.ThemeIcon("symbol-property");
+			}
+
+			if (obj.action === "fix") {
+				return new vscode.ThemeIcon("symbol-type-parameter");
 			}
 		})();
 	}

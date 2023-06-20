@@ -31,7 +31,7 @@
         },
         {
           "command": "dtstack-devops.onCreateMR",
-          "when": "viewItem == dev"
+          "when": "viewItem == dev || viewItem == fix"
         },
         {
           "command": "dtstack-devops.onCreateDevBus",
